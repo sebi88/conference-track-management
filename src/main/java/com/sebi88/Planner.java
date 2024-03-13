@@ -2,12 +2,13 @@ package com.sebi88;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.IntStream;
 
 public class Planner {
 
-  public static Collection<PlannedSession> plan(Collection<Session> sessions,
-      Collection<Talk> talks) {
+  public static List<PlannedSession> plan(Collection<Session> sessions,
+      Collection<Talk> talks) throws PlanningIsNotPossibleException {
     if (sessions.isEmpty()) {
       throw new IllegalStateException("Sessions are empty.");
     }
@@ -16,7 +17,7 @@ public class Planner {
         talks.stream().toArray(Talk[]::new));
   }
 
-  private static Collection<PlannedSession> planOnSorted(Session[] sessions, Talk[] talks) {
+  private static List<PlannedSession> planOnSorted(Session[] sessions, Talk[] talks) throws PlanningIsNotPossibleException {
     int[] talkMapping = new int[talks.length];
     Arrays.fill(talkMapping, -1);
     int talkPointer = 0;
@@ -46,7 +47,7 @@ public class Planner {
           talkPointer--;
           
           if (talkPointer < 0) {
-            throw new IllegalStateException("Could not fit talks to sessions.");
+            throw new PlanningIsNotPossibleException();
           }
         }
       }

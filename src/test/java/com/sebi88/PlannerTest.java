@@ -15,8 +15,6 @@ import com.sebi88.Session.SessionType;
 
 public class PlannerTest {
 
-  private static final String EXCEPTION_MSG = "Could not fit talks to sessions.";
-
   @Test
   void should_throw_exception_when_no_sessions() {
     assertThatCode(() -> Planner.plan(sessions(), talks(60)))
@@ -27,22 +25,18 @@ public class PlannerTest {
   @Test
   void should_throw_exception_when_talks_longer_than_session() {
     assertThatCode(() -> Planner.plan(sessions(30), talks(35)))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage(EXCEPTION_MSG);
+        .isInstanceOf(PlanningIsNotPossibleException.class);
 
     assertThatCode(() -> Planner.plan(sessions(35, 36, 37, 38), talks(40)))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage(EXCEPTION_MSG);
+        .isInstanceOf(PlanningIsNotPossibleException.class);
   }
 
   @Test
   void should_throw_exception_when_talks_dont_fit() {
     assertThatCode(() -> Planner.plan(sessions(30, 40), talks(32, 32)))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage(EXCEPTION_MSG);
+        .isInstanceOf(PlanningIsNotPossibleException.class);
     assertThatCode(() -> Planner.plan(sessions(30, 40), talks(30, 30, 10, 5, 5)))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage(EXCEPTION_MSG);
+        .isInstanceOf(PlanningIsNotPossibleException.class);
   }
 
   static Stream<Arguments> params() {
@@ -67,7 +61,7 @@ public class PlannerTest {
   
   @MethodSource("params")
   @ParameterizedTest
-  void should_plan_sessions_accordingly(List<Session> sessions, List<Talk> talks) {
+  void should_plan_sessions_accordingly(List<Session> sessions, List<Talk> talks) throws PlanningIsNotPossibleException {
     Collection<PlannedSession> plannedSessions = Planner.plan(sessions, talks);
     
     assertThat(plannedSessions)
