@@ -1,17 +1,16 @@
 package com.sebi88;
 
+import static com.sebi88.TestUtils.sessions;
+import static com.sebi88.TestUtils.talks;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import com.sebi88.Session.SessionType;
 
 public class PlannerTest {
 
@@ -76,20 +75,6 @@ public class PlannerTest {
       int totalTalkLength = planned.talks().stream().mapToInt(Talk::length).sum();
       assertThat(totalTalkLength).isLessThanOrEqualTo(planned.length());
     });
-  }
-  
-  private static List<Session> sessions(int... lengths) {
-    AtomicInteger counter = new AtomicInteger();
-    return Arrays.stream(lengths)
-        .mapToObj(length -> new Session(counter.incrementAndGet(), SessionType.BEFORE_NOON, length))
-        .toList();
-  }
-  
-  private static List<Talk> talks(int... lengths) {
-    AtomicInteger counter = new AtomicInteger();
-    return Arrays.stream(lengths)
-        .mapToObj(length -> new Talk("Talk " + counter.incrementAndGet(), length))
-        .toList();
   }
 
 }

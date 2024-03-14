@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +18,7 @@ public class Main {
 
   public static void main(String[] args) throws IOException {
     List<Talk> talks = readTalks(TEST_FILE);
-    int minDays = calculateMinDays(talks);
+    int minDays = guessMinDays(Session.SessionType.BEFORE_NOON.length() + Session.SessionType.AFTER_NOON.length(), talks);
 
     String schedule = IntStream.range(minDays, minDays * 3)
         .mapToObj(Integer.class::cast)
@@ -39,8 +40,9 @@ public class Main {
     System.out.println(schedule);
   }
 
-  static int calculateMinDays(List<Talk> talks) {
-    return 1 + talks.stream().mapToInt(Talk::length).sum() / (Session.SessionType.BEFORE_NOON.length() + Session.SessionType.AFTER_NOON.length());
+  static int guessMinDays(int trackLength, List<Talk> talks) {
+    return Math.max(1,
+        (int) Math.ceil(talks.stream().mapToInt(Talk::length).sum() / trackLength));
   }
 
   static List<Session> generateSessions(int days) {
@@ -64,10 +66,17 @@ public class Main {
 
   static String renderPlanned(List<PlannedSession> plannedSessions) {
     StringBuilder sb = new StringBuilder();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mma");
+    
     for (PlannedSession session : plannedSessions) {
       LocalTime start = session.type().start();
+      if (session.type() == Session.SessionType.BEFORE_NOON) {
+        sb.append("Track ")
+          .append(session.trackId())
+          .append("\n");
+      }
       for (Talk talk : session.talks()) {
-        sb.append(start)
+        sb.append(start.format(formatter))
           .append(" ")
           .append(talk.title())
           .append("\n");
@@ -75,12 +84,12 @@ public class Main {
       }
 
       if (session.type() == Session.SessionType.BEFORE_NOON) {
-        sb.append("12:00PM Lunch");
+        sb.append("12:00PM Lunch\n");
       } else {
         if (start.isBefore(Session.SessionType.MIN_NETWORKING_TIME)) {
           start = Session.SessionType.MIN_NETWORKING_TIME;
         }
-        sb.append(start)
+        sb.append(start.format(formatter))
           .append(" ")
           .append("Networking Event")
           .append("\n\n");
@@ -88,6 +97,5 @@ public class Main {
     }
 
     return sb.toString();
-
   }
 }
