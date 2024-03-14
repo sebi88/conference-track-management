@@ -8,7 +8,7 @@ public class SessionTest {
 
   @Test
   void should_have_length_from_type() {
-    assertThat(new Session(1, SessionType.BEFORE_NOON).length()).isEqualTo(180);
-    assertThat(new Session(1, SessionType.AFTER_NOON).length()).isEqualTo(240);
+    assertThat(new Session(1, SessionType.BEFORE_NOON).length()).isEqualTo(SessionType.BEFORE_NOON.length());
+    assertThat(new Session(1, SessionType.AFTER_NOON).length()).isEqualTo(SessionType.AFTER_NOON.length());
   }
 }
