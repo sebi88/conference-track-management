@@ -61,10 +61,10 @@ public class PlannerTest {
   @MethodSource("params")
   @ParameterizedTest
   void should_plan_sessions_accordingly(List<Session> sessions, List<Talk> talks) throws PlanningIsNotPossibleException {
-    Collection<PlannedSession> plannedSessions = Planner.plan(sessions, talks);
+    Collection<Plan> plannedSessions = Planner.plan(sessions, talks);
     
     assertThat(plannedSessions)
-        .extracting(PlannedSession::asSession)
+        .extracting(Plan::session)
         .containsExactlyInAnyOrderElementsOf(sessions);
     
     assertThat(plannedSessions)
@@ -73,7 +73,7 @@ public class PlannerTest {
     
     plannedSessions.forEach(planned -> {
       int totalTalkLength = planned.talks().stream().mapToInt(Talk::length).sum();
-      assertThat(totalTalkLength).isLessThanOrEqualTo(planned.length());
+      assertThat(totalTalkLength).isLessThanOrEqualTo(planned.session().length());
     });
   }
 

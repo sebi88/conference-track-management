@@ -15,10 +15,18 @@ import com.sebi88.Session.SessionType;
 public class Main {
 
   private static final String TEST_FILE = "input.txt";
+  
+  static final int BEFORE_NOON_SESSION_LENGTH = 180;
+  static final LocalTime BEFORE_NOON_SESSION_START = LocalTime.of(9, 0);
+
+  static final int AFTER_NOON_SESSION_LENGTH = 240;
+  static final LocalTime AFTER_NOON_SESSION_START = LocalTime.of(13, 0);
+  
+  private static final LocalTime MIN_NETWORKING_TIME = LocalTime.of(16, 0);
 
   public static void main(String[] args) throws IOException {
     List<Talk> talks = readTalks(TEST_FILE);
-    int minDays = guessMinDays(Session.SessionType.BEFORE_NOON.length() + Session.SessionType.AFTER_NOON.length(), talks);
+    int minDays = guessMinDays(BEFORE_NOON_SESSION_LENGTH + AFTER_NOON_SESSION_LENGTH, talks);
 
     String schedule = IntStream.range(minDays, minDays * 3)
         .mapToObj(Integer.class::cast)
@@ -28,7 +36,7 @@ public class Main {
             return Optional.of(Planner.plan(sessions, talks));
           } catch (PlanningIsNotPossibleException e) {
             System.out.println("Could not plan for " + days + " days");
-            return Optional.<List<PlannedSession>>empty();
+            return Optional.<List<Plan>>empty();
           }
         })
         .filter(Optional::isPresent)
@@ -50,8 +58,8 @@ public class Main {
 
     IntStream.range(0, days)
         .forEach(day -> {
-          sessions.add(new Session(day + 1, SessionType.BEFORE_NOON));
-          sessions.add(new Session(day + 1, SessionType.AFTER_NOON));
+          sessions.add(new Session(day + 1, SessionType.BEFORE_NOON, BEFORE_NOON_SESSION_START, BEFORE_NOON_SESSION_LENGTH));
+          sessions.add(new Session(day + 1, SessionType.AFTER_NOON, AFTER_NOON_SESSION_START, AFTER_NOON_SESSION_LENGTH));
         });
 
     return sessions;
@@ -64,18 +72,18 @@ public class Main {
         .toList();
   }
 
-  static String renderPlanned(List<PlannedSession> plannedSessions) {
+  static String renderPlanned(List<Plan> plans) {
     StringBuilder sb = new StringBuilder();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mma");
     
-    for (PlannedSession session : plannedSessions) {
-      LocalTime start = session.type().start();
-      if (session.type() == Session.SessionType.BEFORE_NOON) {
+    for (Plan plan : plans) {
+      LocalTime start = plan.session().start();
+      if (plan.session().type() == Session.SessionType.BEFORE_NOON) {
         sb.append("Track ")
-          .append(session.trackId())
+          .append(plan.session().trackId())
           .append("\n");
       }
-      for (Talk talk : session.talks()) {
+      for (Talk talk : plan.talks()) {
         sb.append(start.format(formatter))
           .append(" ")
           .append(talk.title())
@@ -83,16 +91,14 @@ public class Main {
         start = start.plusMinutes(talk.length());
       }
 
-      if (session.type() == Session.SessionType.BEFORE_NOON) {
+      if (plan.session().type() == Session.SessionType.BEFORE_NOON) {
         sb.append("12:00PM Lunch\n");
       } else {
-        if (start.isBefore(Session.SessionType.MIN_NETWORKING_TIME)) {
-          start = Session.SessionType.MIN_NETWORKING_TIME;
+        if (start.isBefore(MIN_NETWORKING_TIME)) {
+          start = MIN_NETWORKING_TIME;
         }
         sb.append(start.format(formatter))
-          .append(" ")
-          .append("Networking Event")
-          .append("\n\n");
+          .append(" Networking Event\n\n");
       }
     }
 
